@@ -1,0 +1,229 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.example</groupId>
+	<artifactId>new-database-build-example</artifactId>
+	<version>1.0.0</version>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<deploy.build.dir>src/main/deploy/</deploy.build.dir>
+		<rollback.build.dir>src/main/rollback/</rollback.build.dir>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>sql-maven-plugin</artifactId>
+					<version>1.5</version>
+
+					<dependencies>
+						<!-- specify the dependent jdbc driver here -->
+						<dependency>
+							<groupId>org.postgresql</groupId>
+							<artifactId>postgresql</artifactId>
+							<version>9.4.1212.jre7</version>
+						</dependency>
+					</dependencies>
+
+					<!-- common configuration shared by all executions -->
+					<configuration>
+						<driver>org.postgresql.Driver</driver>
+						<username>lend_it_spend_it_admin</username>
+						<password>${password}</password>
+					</configuration>
+					
+					<executions>
+						<!-- 
+							CLEAN PHASE
+						-->
+
+						<!-- Rollback FK's -->
+						<execution>
+							<id>rollback-foreign-keys</id>
+							<phase>clean</phase>
+							<goals>
+								<goal>execute</goal>
+							</goals>
+							<configuration>
+								<fileset>
+									<basedir>${rollback.build.dir}</basedir>
+									<includes>
+										<include>**/fk_*.sql</include>
+									</includes>
+								</fileset>
+							</configuration>
+						</execution>
+
+						<!-- Rollback PK's -->
+						<execution>
+							<id>rollback-primary-keys</id>
+							<phase>clean</phase>
+							<goals>
+								<goal>execute</goal>
+							</goals>
+							<configuration>
+								<fileset>
+									<basedir>${rollback.build.dir}</basedir>
+									<includes>
+										<include>**/pk_*.sql</include>
+									</includes>
+								</fileset>
+							</configuration>
+						</execution>		
+						
+						<!-- Rollback Tables -->
+						<execution>
+							<id>rollback-tables</id>
+							<phase>clean</phase>
+							<goals>
+								<goal>execute</goal>
+							</goals>
+							<configuration>
+								<fileset>
+									<basedir>${rollback.build.dir}</basedir>
+									<includes>
+										<include>**/*_tbl.sql</include>
+									</includes>
+								</fileset>
+							</configuration>
+						</execution>
+						
+						<!-- Rollback Schemas -->
+						<execution>
+							<id>rollback-schemas</id>
+							<phase>clean</phase>
+							<goals>
+								<goal>execute</goal>
+							</goals>
+							<configuration>
+								<fileset>
+									<basedir>${rollback.build.dir}</basedir>
+									<includes>
+										<include>**/sch_*.sql</include>
+									</includes>
+								</fileset>
+							</configuration>
+						</execution>
+						
+					<!-- 
+						COMPILE PHASE
+					-->
+				
+						<!-- Deploy Scehmas -->
+						<execution>
+							<id>deploy-schemas</id>
+							<phase>compile</phase>
+							<goals>
+								<goal>execute</goal>
+							</goals>
+							<configuration>
+								<fileset>
+									<basedir>${deploy.build.dir}</basedir>
+									<includes>
+										<include>**/sch_*.sql</include>
+									</includes>
+								</fileset>
+							</configuration>
+						</execution>	
+																
+						<!-- Deploy Tables -->
+						<execution>
+							<id>deploy-tables</id>
+							<phase>compile</phase>
+							<goals>
+								<goal>execute</goal>
+							</goals>
+							<configuration>
+								<fileset>
+									<basedir>${deploy.build.dir}</basedir>
+									<includes>
+										<include>**/*_tbl.sql</include>
+									</includes>
+								</fileset>
+							</configuration>
+						</execution>
+											
+						<!-- Deploy PK's -->
+						<execution>
+							<id>deploy-primary-keys</id>
+							<phase>compile</phase>
+							<goals>
+								<goal>execute</goal>
+							</goals>
+							<configuration>
+								<fileset>
+									<basedir>${deploy.build.dir}</basedir>
+									<includes>
+										<include>**/pk_*.sql</include>
+									</includes>
+								</fileset>
+							</configuration>
+						</execution>
+						
+						<!-- Deploy FK's -->
+						<execution>
+							<id>deploy-foreign-keys</id>
+							<phase>compile</phase>
+							<goals>
+								<goal>execute</goal>
+							</goals>
+							<configuration>
+								<fileset>
+									<basedir>${deploy.build.dir}</basedir>
+									<includes>
+										<include>**/fk_*.sql</include>
+									</includes>
+								</fileset>
+							</configuration>
+						</execution>
+						
+						<!-- Deploy Functions -->
+						<execution>
+							<id>deploy-functions</id>
+							<phase>compile</phase>
+							<goals>
+								<goal>execute</goal>
+							</goals>
+							<configuration>
+								<delimiter>/</delimiter>
+								<delimiterType>row</delimiterType>
+								<fileset>
+									<basedir>${deploy.build.dir}</basedir>
+									<includes>
+										<include>**/*_fnc.sql</include>
+									</includes>
+								</fileset>
+							</configuration>
+						</execution>
+					
+					</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>local</id>
+			<properties>
+				<url>jdbc:postgresql://127.0.0.1:5432/example_db</url>
+			</properties>
+		</profile>
+		
+		<profile>
+			<id>dev</id>
+			<properties>
+				<url>jdbc:postgresql://192.168.0.10:5432/example_db</url>
+			</properties>
+		</profile>
+	</profiles>
+</project>
